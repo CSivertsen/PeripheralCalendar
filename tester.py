@@ -31,5 +31,5 @@ if __name__ == '__main__':
             ## Orange Led
             for i in range(strip.numPixels()):
                 strip.setPixelColor(i, Color(255, 0, 0))
-except KeyboardInterrupt:
-    GPIO.cleanup()
+                print("Button Pressed!")
+GPIO.cleanup()
