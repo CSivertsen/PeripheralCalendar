@@ -44,6 +44,7 @@ height = disp.height
 padding = 2
 top = padding
 bottom = height-padding
+x = padding
 
 image = Image.new('1', (width, height))
 draw = ImageDraw.Draw(image)
