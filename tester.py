@@ -31,7 +31,7 @@ LED_BRIGHTNESS  = 20
 LED_INVERT      = False
 
 #Button
-butPin = 23
+butPin = 25
 
 GPIO.setup(butPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
