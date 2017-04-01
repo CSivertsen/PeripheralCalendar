@@ -27,9 +27,10 @@ if __name__ == '__main__':
             ## White LED
             for i in range(strip.numPixels()):
                 strip.setPixelColor(i, Color(255, 255, 255))
+                strip.show()
         else:
             ## Orange Led
             for i in range(strip.numPixels()):
                 strip.setPixelColor(i, Color(255, 0, 0))
-                print("Button Pressed!")
+                strip.show()
 GPIO.cleanup()
