@@ -166,7 +166,7 @@ def showLeds(events, now ):
 
 def checkButton(events):
     if GPIO.input(butPin):
-        showScreen(events):
+        showScreen(events)
 
 def showScreen(events):
     draw.text((x, top), 'Next event in ', font=font, fill=255)
