@@ -76,10 +76,7 @@ LED_INVERT      = False
 
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
 strip.begin()
-
-
-
-
+strip.setBrightness(10)
 
 def authenticate():
     """Gets valid user credentials from storage.
