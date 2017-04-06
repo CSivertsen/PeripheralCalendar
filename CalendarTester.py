@@ -7,16 +7,16 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
-#import Adafruit_GPIO.SPI as SPI
-#import Adafruit_SSD1306
+import Adafruit_GPIO.SPI as SPI
+import Adafruit_SSD1306
 
-#from neopixel import *
+from neopixel import *
 
-#from PIL import Image
-#from PIL import ImageDraw
-#from PIL import ImageFont
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 
 import datetime
 
