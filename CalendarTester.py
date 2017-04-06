@@ -32,7 +32,7 @@ SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Google Calendar API Python Quickstart'
 
-"""
+
 # Pin Setup:
 GPIO.setmode(GPIO.BCM) # Broadcom pin-numbering scheme
 
@@ -76,7 +76,7 @@ LED_INVERT      = False
 
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
 strip.begin()
-"""
+
 
 
 
@@ -121,14 +121,16 @@ def main():
     now = datetime.datetime.now()
     now = now.isoformat() + '+02:00' # 'Z' indicates UTC time1
     print(now)
+
     # Only check this every 5 minutes
     events = getEvents(service, now)
 
     showLeds(events, now)
-    # checkButton()
+    checkButton()
+
     # if screen is timed out, call clearScreen
 
-    #GPIO.cleanup()
+    GPIO.cleanup()
 
 def showLeds(events, now ):
     timeLeft = []
@@ -165,13 +167,12 @@ def showLeds(events, now ):
             print('Pixel ' + i + ' is blue')
             """
 
-"""
 def checkButton(events):
     if GPIO.input(butPin):
         showScreen(events):
 
-def showScreen():
-    draw.text((x, top), 'Next event in ' + , font=font, fill=255)
+def showScreen(events):
+    draw.text((x, top), 'Next event in ', font=font, fill=255)
     draw.text((x, top+20), 'Next meeting in 20 min.', font=font, fill=255)
     draw.text((x, top+40), 'Coach meeting in 0.35', font=font, fill=255)
     disp.image(image)
@@ -184,7 +185,7 @@ def clearScreen():
     # Display image.
     disp.image(image)
     disp.display()
-"""
+
 
 def getEvents( service , now):
     """Shows basic usage of the Google Calendar API.
