@@ -42,7 +42,7 @@ DC = 23
 SPI_PORT = 0
 SPI_DEVICE = 0
 
-disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST, dc=DC, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=8000000))
+disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST, dc=DC, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=1000000))
 
 disp.begin()
 disp.clear()
@@ -55,7 +55,9 @@ top = padding
 bottom = height-padding
 x = padding
 
-timeout = 5000
+screenTimeout = datetime.timedelta(seconds=5)
+lastScreenActivation = None
+buttonWasOn = False
 
 image = Image.new('1', (width, height))
 draw = ImageDraw.Draw(image)
@@ -67,7 +69,7 @@ butPin = 25
 GPIO.setup(butPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 #LED strip config
-LED_COUNT       = 1
+LED_COUNT       = 8
 LED_PIN         = 18
 LED_FREQ_HZ     = 800000
 LED_DMA         = 5
@@ -76,7 +78,8 @@ LED_INVERT      = False
 
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
 strip.begin()
-strip.setBrightness(10)
+strip.setBrightness(20)
+strip.show()
 
 def authenticate():
     """Gets valid user credentials from storage.
@@ -111,67 +114,92 @@ def authenticate():
 def main():
     service = authenticate()
 
-    print("Here we go! Press CTRL+C to exit")
-    #while True:
-
-    #now = datetime.datetime.now() + datetime.timedelta(hours=2)
-    now = datetime.datetime.now()
-    now = now.isoformat() + '+02:00' # 'Z' indicates UTC time1
-    print(now)
-
-    # Only check this every 5 minutes
+    nowUnadjusted = datetime.datetime.now()
+    now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
     events = getEvents(service, now)
+    lastGoogleCall = nowUnadjusted
+    global lastScreenActivation
+    lastScreenActivation = nowUnadjusted
 
-    showLeds(events, now)
-    checkButton()
+    print("Here we go! Press CTRL+C to exit")
 
-    # if screen is timed out, call clearScreen
+    while True:
+        #now = datetime.datetime.now() + datetime.timedelta(hours=2)
+        # Only check this every 5 minutes
+        nowUnadjusted = datetime.datetime.now()
+        now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
 
+        if datetime.timedelta(minutes=1) < nowUnadjusted - lastGoogleCall:
+            events = getEvents(service, now)
+            lastGoogleCall = nowUnadjusted
+
+        if screenTimeout < nowUnadjusted - lastScreenActivation:
+            clearScreen()
+
+        showLeds(events, now)
+        checkButton(events, nowUnadjusted)
+
+        # if screen is timed out, call clearScreen
+
+    for i in range(LED_COUNT):
+        strip.setPixelColor(i, Color(0, 0, 0))
+        strip.show()
     GPIO.cleanup()
+
 
 def showLeds(events, now ):
     timeLeft = []
-    print('Showing Leds')
+    #print('Showing Leds')
     for event in events:
         start = event['start'].get('dateTime', event['start'].get('dateTime'))
         if start:
             startTime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S+02:00")
             nowTime = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
             diff = startTime - nowTime
-            print(diff)
+            #print(diff)
             if diff < datetime.timedelta(minutes=30):
                 timeLeft.append(diff)
-                print('Found a relevant event')
+
+    for i in range(LED_COUNT):
+        strip.setPixelColor(i, Color(255, 255, 255))
 
     for i in range(len(timeLeft)):
-        onLed = abs(round(timeLeft[i].seconds*8/(30*60)) - 8)
-        if onLed == 8:
-            print('All pixels are lit up')
+        onLed = abs(round(timeLeft[i].seconds*8/(30*60)) - LED_COUNT)
+        if onLed == LED_COUNT:
+            for i in range(LED_COUNT):
+                strip.setPixelColor(i, Color(0, 150, 255))
+                strip.show()
         else:
-            for j in range(8):
-                print('Pixel ' + str(onLed) + ' is now lit up')
+            for i in range(LED_COUNT):
+                if i == onLed:
+                    strip.setPixelColor(i, Color(0, 150, 255))
+                    strip.show()
 
-    """
-    if numLeds == 0:
-        for i in range(8):
-            #strip.setPixelColor(i, Color(255, 255, 255))
-            #strip.show()
-            print('Pixel ' + i + ' is white')
-    else:
-        for i in range(ledNums):
-            #strip.setPixelColor(i, Color(255, 255, 0))
-            #strip.show()
-            print('Pixel ' + i + ' is blue')
-            """
+def checkButton(events, nowUnadjusted):
+    global lastScreenActivation
+    global buttonWasOn
+    if not GPIO.input(butPin) and not buttonWasOn:
+        lastScreenActivation = nowUnadjusted
+        showScreen(events, nowUnadjusted)
+        buttonWasOn = True
 
-def checkButton(events):
     if GPIO.input(butPin):
-        showScreen(events)
+        buttonWasOn = False
 
-def showScreen(events):
-    draw.text((x, top), 'Next event in ', font=font, fill=255)
-    draw.text((x, top+20), 'Next meeting in 20 min.', font=font, fill=255)
-    draw.text((x, top+40), 'Coach meeting in 0.35', font=font, fill=255)
+
+def showScreen(events, nowUnadjusted):
+    i = 0
+    for event in events:
+        eventStart = event['start'].get('dateTime', event['start'].get('dateTime'))
+        if eventStart:
+            eventStart = datetime.datetime.strptime(eventStart, "%Y-%m-%dT%H:%M:%S+02:00")
+            now = nowUnadjusted.isoformat() + '+02:00'
+            now = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
+            diff = eventStart - now
+            draw.text((x, top + (i*15)), 'Event in ' + str(round(diff.seconds/60)) + ' minutes', font=font, fill=255)
+            draw.text((x, top + ((i+1)*15)), event['summary'], font=font, fill=255)
+            i += 2
+
     disp.image(image)
     disp.display()
 
