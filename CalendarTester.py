@@ -32,6 +32,7 @@ SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Google Calendar API Python Quickstart'
 
+horizon = 60
 
 # Pin Setup:
 GPIO.setmode(GPIO.BCM) # Broadcom pin-numbering scheme
@@ -69,7 +70,7 @@ butPin = 25
 GPIO.setup(butPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 #LED strip config
-LED_COUNT       = 8
+LED_COUNT       = 12
 LED_PIN         = 18
 LED_FREQ_HZ     = 800000
 LED_DMA         = 5
@@ -78,7 +79,7 @@ LED_INVERT      = False
 
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
 strip.begin()
-strip.setBrightness(20)
+strip.setBrightness(15)
 strip.show()
 
 def authenticate():
@@ -148,6 +149,7 @@ def main():
 
 
 def showLeds(events, now ):
+    global horizon
     timeLeft = []
     #print('Showing Leds')
     for event in events:
@@ -157,23 +159,22 @@ def showLeds(events, now ):
             nowTime = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
             diff = startTime - nowTime
             #print(diff)
-            if diff < datetime.timedelta(minutes=30):
+            if diff < datetime.timedelta(minutes=horizon):
                 timeLeft.append(diff)
 
     for i in range(LED_COUNT):
         strip.setPixelColor(i, Color(255, 255, 255))
 
     for i in range(len(timeLeft)):
-        onLed = abs(round(timeLeft[i].seconds*8/(30*60)) - LED_COUNT)
+        onLed = abs(round(timeLeft[i].seconds*LED_COUNT/(horizon*60)) - LED_COUNT)
         if onLed == LED_COUNT:
             for i in range(LED_COUNT):
                 strip.setPixelColor(i, Color(0, 150, 255))
-                strip.show()
         else:
             for i in range(LED_COUNT):
                 if i == onLed:
                     strip.setPixelColor(i, Color(0, 150, 255))
-                    strip.show()
+    strip.show()
 
 def checkButton(events, nowUnadjusted):
     global lastScreenActivation
