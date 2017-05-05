@@ -70,7 +70,7 @@ butPin = 25
 GPIO.setup(butPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 #LED strip config
-LED_COUNT       = 12
+LED_COUNT       = 13
 LED_PIN         = 18
 LED_FREQ_HZ     = 800000
 LED_DMA         = 5
