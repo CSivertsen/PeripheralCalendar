@@ -1,12 +1,3 @@
-from __future__ import print_function
-import httplib2
-import os
-
-from apiclient import discovery
-from oauth2client import client
-from oauth2client import tools
-from oauth2client.file import Storage
-
 import RPi.GPIO as GPIO
 
 import Adafruit_GPIO.SPI as SPI
@@ -20,19 +11,7 @@ from PIL import ImageFont
 
 import datetime
 
-try:
-    import argparse
-    flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
-except ImportError:
-    flags = None
-
-# If modifying these scopes, delete your previously saved credentials
-# at ~/.credentials/calendar-python-quickstart.json
-SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
-CLIENT_SECRET_FILE = 'client_secret.json'
-APPLICATION_NAME = 'Google Calendar API Python Quickstart'
-
-horizon = 240
+import googlecalendar
 
 # Pin Setup:
 GPIO.setmode(GPIO.BCM) # Broadcom pin-numbering scheme
@@ -84,42 +63,16 @@ strip.begin()
 strip.setBrightness(15)
 strip.show()
 
-def authenticate():
-    """Gets valid user credentials from storage.
-
-    If nothing has been stored, or if the stored credentials are invalid,
-    the OAuth2 flow is completed to obtain the new credentials.
-
-    Returns:
-        Credentials, the obtained credential.
-    """
-    home_dir = os.path.expanduser('~')
-    credential_dir = os.path.join(home_dir, '.credentials')
-    if not os.path.exists(credential_dir):
-        os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,'calendar-python-quickstart.json')
-    store = Storage(credential_path)
-    credentials = store.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-        flow.user_agent = APPLICATION_NAME
-        if flags:
-            credentials = tools.run_flow(flow, store, flags)
-        else: # Needed only for compatibility with Python 2.6
-            credentials = tools.run(flow, store)
-        print('Storing credentials to ' + credential_path)
-
-    http = credentials.authorize(httplib2.Http())
-    service = discovery.build('calendar', 'v3', http=http)
-    return service
-
 
 def main():
-    service = authenticate()
+
+    calendarHandler = googlecalendar.CalendarService()
 
     nowUnadjusted = datetime.datetime.now()
     now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
-    events = getEvents(service, now)
+
+    calendars = calendarHandler.getCalendars()
+    events = calendarHandler.getEvents(now)
     lastGoogleCall = nowUnadjusted
     global lastScreenActivation
     lastScreenActivation = nowUnadjusted
@@ -134,13 +87,11 @@ def main():
             now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
 
             if datetime.timedelta(minutes=1) < nowUnadjusted - lastGoogleCall:
-                events = getEvents(service, now)
+                events = calendarHandler.getEvents(now)
                 lastGoogleCall = nowUnadjusted
 
             if screenTimeout < nowUnadjusted - lastScreenActivation:
                 clearScreen()
-
-
 
             showLeds(events, now)
             checkButton(events, nowUnadjusted)
@@ -230,28 +181,6 @@ def clearScreen():
     # Display image.
     disp.image(image)
     disp.display()
-
-
-def getEvents( service , now):
-    """Shows basic usage of the Google Calendar API.
-
-    Creates a Google Calendar API service object and outputs a list of the next
-    10 events on the user's calendar.
-    """
-
-    print('Getting the upcoming 5 events')
-    eventsResult = service.events().list(
-        calendarId='primary', timeMin=now, maxResults=5, singleEvents=True,
-        orderBy='startTime').execute()
-    newEvents = eventsResult.get('items', [])
-
-    if not newEvents:
-        print('No upcoming events found.')
-    for event in newEvents:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
-
-    return newEvents
 
 
 def shutdown():
