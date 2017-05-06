@@ -154,6 +154,11 @@ def main():
         GPIO.cleanup()
         print('Exiting program due to KeyboardInterrupt')
         exit()
+    except:
+        for i in range(LED_COUNT):
+            strip.setPixelColor(i, Color(0, 0, 0))
+            strip.show()
+        GPIO.cleanup()
 
 def showLeds(events, now ):
     global horizon
@@ -249,7 +254,7 @@ def getEvents( service , now):
     return newEvents
 
 
-def shutdown(channel):
+def shutdown():
     for i in range(LED_COUNT):
         strip.setPixelColor(i, Color(0, 0, 0))
         strip.show()
