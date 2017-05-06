@@ -147,12 +147,13 @@ def main():
 
             # if screen is timed out, call clearScreen
 
-    except:
+    except KeyboardInterrupt:
         for i in range(LED_COUNT):
             strip.setPixelColor(i, Color(0, 0, 0))
             strip.show()
         GPIO.cleanup()
-        sys.exit()
+        print('Exiting program due to KeyboardInterrupt')
+        exit()
 
 def showLeds(events, now ):
     global horizon
@@ -253,6 +254,7 @@ def shutdown(channel):
         strip.setPixelColor(i, Color(0, 0, 0))
         strip.show()
     GPIO.cleanup()
+    print('Shutting down RaspPi')
     os.system("sudo shutdown -h now")
 
 
