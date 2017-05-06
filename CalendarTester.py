@@ -152,7 +152,7 @@ def main():
             strip.setPixelColor(i, Color(0, 0, 0))
             strip.show()
         GPIO.cleanup()
-        exit()
+        sys.exit()
 
 def showLeds(events, now ):
     global horizon
@@ -249,8 +249,12 @@ def getEvents( service , now):
 
 
 def shutdown(channel):
+    for i in range(LED_COUNT):
+        strip.setPixelColor(i, Color(0, 0, 0))
+        strip.show()
+    GPIO.cleanup()
     os.system("sudo shutdown -h now")
-    
+
 
 if __name__ == '__main__':
     main()
