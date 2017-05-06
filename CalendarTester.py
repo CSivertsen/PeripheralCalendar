@@ -57,8 +57,10 @@ bottom = height-padding
 x = padding
 
 screenTimeout = datetime.timedelta(seconds=5)
+buttonTimeout = datetime.timedelta(seconds=10)
 lastScreenActivation = None
 buttonWasOn = False
+buttonActivation = None
 
 image = Image.new('1', (width, height))
 draw = ImageDraw.Draw(image)
@@ -124,29 +126,33 @@ def main():
 
     print("Here we go! Press CTRL+C to exit")
 
-    while True:
-        #now = datetime.datetime.now() + datetime.timedelta(hours=2)
-        # Only check this every 5 minutes
-        nowUnadjusted = datetime.datetime.now()
-        now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
+    try:
+        while True:
+            #now = datetime.datetime.now() + datetime.timedelta(hours=2)
+            # Only check this every 5 minutes
+            nowUnadjusted = datetime.datetime.now()
+            now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
 
-        if datetime.timedelta(minutes=1) < nowUnadjusted - lastGoogleCall:
-            events = getEvents(service, now)
-            lastGoogleCall = nowUnadjusted
+            if datetime.timedelta(minutes=1) < nowUnadjusted - lastGoogleCall:
+                events = getEvents(service, now)
+                lastGoogleCall = nowUnadjusted
 
-        if screenTimeout < nowUnadjusted - lastScreenActivation:
-            clearScreen()
+            if screenTimeout < nowUnadjusted - lastScreenActivation:
+                clearScreen()
 
-        showLeds(events, now)
-        checkButton(events, nowUnadjusted)
 
-        # if screen is timed out, call clearScreen
 
-    for i in range(LED_COUNT):
-        strip.setPixelColor(i, Color(0, 0, 0))
-        strip.show()
-    GPIO.cleanup()
+            showLeds(events, now)
+            checkButton(events, nowUnadjusted)
 
+            # if screen is timed out, call clearScreen
+
+    except:
+        for i in range(LED_COUNT):
+            strip.setPixelColor(i, Color(0, 0, 0))
+            strip.show()
+        GPIO.cleanup()
+        exit()
 
 def showLeds(events, now ):
     global horizon
@@ -179,10 +185,16 @@ def showLeds(events, now ):
 def checkButton(events, nowUnadjusted):
     global lastScreenActivation
     global buttonWasOn
+    global buttonActivation
     if not GPIO.input(butPin) and not buttonWasOn:
         lastScreenActivation = nowUnadjusted
+        buttonActivation = nowUnadjusted
         showScreen(events, nowUnadjusted)
         buttonWasOn = True
+
+    if not GPIO.input(butPin) and buttonWasOn:
+        if buttonTimeout < nowUnadjusted - buttonActivation:
+            shutdown()
 
     if GPIO.input(butPin):
         buttonWasOn = False
@@ -203,6 +215,7 @@ def showScreen(events, nowUnadjusted):
 
     disp.image(image)
     disp.display()
+
 
 def clearScreen():
     # Draw a black filled box to clear the image.
@@ -233,6 +246,11 @@ def getEvents( service , now):
         print(start, event['summary'])
 
     return newEvents
+
+
+def shutdown(channel):
+    os.system("sudo shutdown -h now")
+    
 
 if __name__ == '__main__':
     main()
