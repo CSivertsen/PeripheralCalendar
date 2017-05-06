@@ -17,44 +17,42 @@ except ImportError:
 
 
 class CalendarService:
-        service = None
-        horizon = 240
+    service = None
 
-        # If modifying these scopes, delete your previously saved credentials
-        # at ~/.credentials/calendar-python-quickstart.json
-        SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
-        CLIENT_SECRET_FILE = 'client_secret.json'
-        APPLICATION_NAME = 'Google Calendar API Python Quickstart'
+    # If modifying these scopes, delete your previously saved credentials
+    # at ~/.credentials/calendar-python-quickstart.json
+    SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
+    CLIENT_SECRET_FILE = 'client_secret.json'
+    APPLICATION_NAME = 'Google Calendar API Python Quickstart'
 
     def __init__(self):
-        service = authenticate()
+        self.service = self.authenticate()
+        self.calendarIds = self.getCalendars()
 
-    def getEvents(now):
-        """Shows basic usage of the Google Calendar API.
+    def getEvents(self, now, horizon):
+        allEvents = []
 
-        Creates a Google Calendar API service object and outputs a list of the next
-        10 events on the user's calendar.
-        """
+        print('Getting events within time horizon')
+        for calendarId in self.calendarIds:
+            eventsResult = self.service.events().list(
+                calendarId='ot793f9fdo9anh2d86jmm6pjrg@group.calendar.google.com', timeMin=now, timeMax=horizon, singleEvents=True,
+                orderBy='startTime').execute()
+            allEvents = eventsResult.get('items', [])
 
-        print('Getting the upcoming 5 events')
-        eventsResult = service.events().list(
-            calendarId=calendarIds, timeMin=now, maxResults=5, singleEvents=True,
-            orderBy='startTime').execute()
-        newEvents = eventsResult.get('items', [])
-
-        if not newEvents:
+        if not allEvents:
             print('No upcoming events found.')
-        for event in newEvents:
-            start = event['start'].get('dateTime', event['start'].get('date'))
-            print(start, event['summary'])
+        for events in allEvents:
+            for event in events:
+                start = event['start'].get('dateTime', event['start'].get('date'))
+                print(start, event['summary'])
 
-        return newEvents
+        return allEvents
 
-    def getCalendars():
+    def getCalendars(self):
         page_token = None
         calendarIDs = []
         while True:
-          calendar_list = service.calendarList().list(pageToken=page_token).execute()
+          calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
           for calendar_list_entry in calendar_list['items']:
               #print(calendar_list_entry.get('id'))
               calendarIDs.append(calendar_list_entry.get('id'))
@@ -62,7 +60,7 @@ class CalendarService:
           if not page_token:
             return calendarIDs
 
-    def authenticate():
+    def authenticate(self):
         """Gets valid user credentials from storage.
 
         If nothing has been stored, or if the stored credentials are invalid,

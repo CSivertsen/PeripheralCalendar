@@ -12,6 +12,7 @@ from PIL import ImageFont
 import datetime
 
 import googlecalendar
+horizonDelta = 240
 
 # Pin Setup:
 GPIO.setmode(GPIO.BCM) # Broadcom pin-numbering scheme
@@ -70,9 +71,10 @@ def main():
 
     nowUnadjusted = datetime.datetime.now()
     now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
+    horizon = (nowUnadjusted+datetime.timedelta(minutes=horizonDelta)).isoformat() + '+02:00'
 
     calendars = calendarHandler.getCalendars()
-    events = calendarHandler.getEvents(now)
+    allEvents = calendarHandler.getEvents(now, horizon)
     lastGoogleCall = nowUnadjusted
     global lastScreenActivation
     lastScreenActivation = nowUnadjusted
@@ -87,14 +89,16 @@ def main():
             now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
 
             if datetime.timedelta(minutes=1) < nowUnadjusted - lastGoogleCall:
-                events = calendarHandler.getEvents(now)
+                allEvents = calendarHandler.getEvents(now, horizon)
                 lastGoogleCall = nowUnadjusted
+                print(now)
+                print(horizon)
 
             if screenTimeout < nowUnadjusted - lastScreenActivation:
                 clearScreen()
 
-            showLeds(events, now)
-            checkButton(events, nowUnadjusted)
+            showLeds(allEvents, now)
+            checkButton(allEvents, nowUnadjusted)
 
             # if screen is timed out, call clearScreen
 
@@ -110,26 +114,28 @@ def main():
             strip.setPixelColor(i, Color(0, 0, 0))
             strip.show()
         GPIO.cleanup()
+        traceback.print_exc()
 
-def showLeds(events, now ):
-    global horizon
+def showLeds(allEvents, now ):
+    global horizonDelta
     timeLeft = []
     #print('Showing Leds')
-    for event in events:
-        start = event['start'].get('dateTime', event['start'].get('dateTime'))
-        if start:
-            startTime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S+02:00")
-            nowTime = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
-            diff = startTime - nowTime
-            #print(diff)
-            if diff < datetime.timedelta(minutes=horizon):
-                timeLeft.append(diff)
+    for events in allEvents:
+        for event in events:
+            start = event['start'].get('dateTime', event['start'].get('dateTime'))
+            if start:
+                startTime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S+02:00")
+                nowTime = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
+                diff = startTime - nowTime
+                #print(diff)
+                if diff < datetime.timedelta(minutes=horizonDelta):
+                    timeLeft.append(diff)
 
     for i in range(LED_COUNT):
         strip.setPixelColor(i, Color(255, 255, 255))
 
     for i in range(len(timeLeft)):
-        onLed = abs(round(timeLeft[i].seconds*LED_COUNT/(horizon*60)) - LED_COUNT)
+        onLed = abs(round(timeLeft[i].seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT)
         if onLed == LED_COUNT:
             for i in range(LED_COUNT):
                 strip.setPixelColor(i, Color(0, 150, 255))
@@ -139,7 +145,7 @@ def showLeds(events, now ):
                     strip.setPixelColor(i, Color(0, 150, 255))
     strip.show()
 
-def checkButton(events, nowUnadjusted):
+def checkButton(allEvents, nowUnadjusted):
     global lastScreenActivation
     global buttonWasOn
     global buttonActivation
@@ -157,18 +163,19 @@ def checkButton(events, nowUnadjusted):
         buttonWasOn = False
 
 
-def showScreen(events, nowUnadjusted):
+def showScreen(allEvents, nowUnadjusted):
     i = 0
-    for event in events:
-        eventStart = event['start'].get('dateTime', event['start'].get('dateTime'))
-        if eventStart:
-            eventStart = datetime.datetime.strptime(eventStart, "%Y-%m-%dT%H:%M:%S+02:00")
-            now = nowUnadjusted.isoformat() + '+02:00'
-            now = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
-            diff = eventStart - now
-            draw.text((x, top + (i*15)), 'Event in ' + str(round(diff.seconds/60)) + ' minutes', font=font, fill=255)
-            draw.text((x, top + ((i+1)*15)), event['summary'], font=font, fill=255)
-            i += 2
+    for events in allEvents:
+        for event in events:
+            eventStart = event['start'].get('dateTime', event['start'].get('dateTime'))
+            if eventStart:
+                eventStart = datetime.datetime.strptime(eventStart, "%Y-%m-%dT%H:%M:%S+02:00")
+                now = nowUnadjusted.isoformat() + '+02:00'
+                now = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
+                diff = eventStart - now
+                draw.text((x, top + (i*15)), 'Event in ' + str(round(diff.seconds/60)) + ' minutes', font=font, fill=255)
+                draw.text((x, top + ((i+1)*15)), event['summary'], font=font, fill=255)
+                i += 2
 
     disp.image(image)
     disp.display()
