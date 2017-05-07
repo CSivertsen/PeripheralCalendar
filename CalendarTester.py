@@ -17,6 +17,10 @@ import googlecalendar
 horizonDelta = 180
 calendarHandler = None
 
+import pixelpatterns
+pixelFader = None
+
+
 # Pin Setup:
 GPIO.setmode(GPIO.BCM) # Broadcom pin-numbering scheme
 
@@ -72,6 +76,7 @@ def main():
 
     global calendarHandler
     calendarHandler = googlecalendar.CalendarService()
+    global pixelFader = pixelpatterns.pixelFader()
 
     nowUnadjusted = datetime.datetime.now()
     now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
@@ -103,6 +108,7 @@ def main():
 
             showLeds(allEvents, now)
             checkButton(allEvents, nowUnadjusted)
+            pixelFader.update()
 
             # if screen is timed out, call clearScreen
 
@@ -123,12 +129,13 @@ def main():
 def showLeds(allEvents, now ):
     global horizonDelta
     global calendarHandler
+    global pixelFader
     #timeLeft = []
     #print('Showing Leds')
 
 
     for i in range(LED_COUNT):
-        strip.setPixelColor(i, Color(0, 0, 0))
+        strip.setPixelColor(i, Color(10, 10, 10))
 
         for calendarId in allEvents.keys():
             for event in allEvents[calendarId]:
@@ -147,15 +154,17 @@ def showLeds(allEvents, now ):
                     firstLed = int(abs(round(diffStart.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
                     lastLed = int(abs(round(diffEnd.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
                     #print(firstLed, lastLed)
-                    #If an event is due
-                    if diffStart < datetime.timedelta(minutes=5):
-                        for i in range(LED_COUNT):
-                            strip.setPixelColor(i, Color(colorRGB[0], colorRGB[1], colorRGB[2]))
 
                     #For other events on the timeline
                     for i in range(lastLed, firstLed):
-                            #print("Turning on Led: ", i)
-                            strip.setPixelColor(i, Color(colorRGB[0], colorRGB[1], colorRGB[2]))
+                            #If an event is ongoing
+                            if diffStart < datetime.timedelta(minutes=5):
+                                fadedColor = pixelFader.fade(colorRGB)
+                                strip.setPixelColor(i, Color(fadedColor[1], fadedColor[0], fadedColor[2]))
+
+                            #Other events
+                            else:
+                            strip.setPixelColor(i, Color(colorRGB[1], colorRGB[0], colorRGB[2]))
     strip.show()
 
 def checkButton(allEvents, nowUnadjusted):
