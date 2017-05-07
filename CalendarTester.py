@@ -161,7 +161,8 @@ def showLeds(allEvents, now):
                     for i in range(lastLed, firstLed):
                             #If an event is ongoing
                             if diffStart < datetime.timedelta(minutes=5):
-                                fadedColor = pixelFader.fade(colorRGB)
+                                #fadedColor = pixelFader.fade(colorRGB)
+                                fadedColor = colorRGB
                                 strip.setPixelColor(i, Color(fadedColor[1], fadedColor[0], fadedColor[2]))
 
                             #Other events

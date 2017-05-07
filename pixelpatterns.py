@@ -14,5 +14,5 @@ class PixelFader:
         return colorRGB
 
     def update(self):
-        x = (time.time() * 1000 % self.speed)/40
+        x = (time.time() * 1000 % self.speed)/speed*100
         self.fade = x
