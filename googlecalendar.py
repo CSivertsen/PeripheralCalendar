@@ -57,14 +57,14 @@ class CalendarService:
         while True:
             calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
 
-        for calendar_list_entry in calendar_list['items']:
-          #print(calendar_list_entry.get('summary'))
-          calendarId = calendar_list_entry.get('id')
-          calendarIDs.append(calendarId)
-          self.calendarColors[calendarId] = calendar_list_entry.get('foregroundColor')
-        page_token = calendar_list.get('nextPageToken')
-        if not page_token:
-            return calendarIDs
+            for calendar_list_entry in calendar_list['items']:
+              #print(calendar_list_entry.get('summary'))
+              calendarId = calendar_list_entry.get('id')
+              calendarIDs.append(calendarId)
+              self.calendarColors[calendarId] = calendar_list_entry.get('foregroundColor')
+            page_token = calendar_list.get('nextPageToken')
+            if not page_token:
+                return calendarIDs
 
     def getEventColor(self, colorId, calendarId):
         if colorId:
