@@ -107,7 +107,7 @@ def main():
             if screenTimeout < nowUnadjusted - lastScreenActivation:
                 clearScreen()
 
-            pixelFader.update()
+            #pixelFader.update()
             showLeds(allEvents, now)
             checkButton(allEvents, nowUnadjusted)
 
@@ -161,8 +161,8 @@ def showLeds(allEvents, now):
                     for i in range(lastLed, firstLed):
                             #If an event is ongoing
                             if diffStart < datetime.timedelta(minutes=5):
-                                #fadedColor = pixelFader.fade(colorRGB)
-                                fadedColor = colorRGB
+                                fadedColor = pixelFader.fade(colorRGB)
+                                #print(fadedColor)
                                 strip.setPixelColor(i, Color(fadedColor[1], fadedColor[0], fadedColor[2]))
 
                             #Other events
@@ -189,18 +189,40 @@ def checkButton(allEvents, nowUnadjusted):
 
 
 def showScreen(allEvents, nowUnadjusted):
-    i = 0
+    eventTimes = []
+    firstEvent = None
     for calendarId in allEvents.keys():
         for event in allEvents[calendarId]:
-            eventStart = event['start'].get('dateTime', event['start'].get('dateTime'))
-            if eventStart:
-                eventStart = datetime.datetime.strptime(eventStart, "%Y-%m-%dT%H:%M:%S+02:00")
-                now = nowUnadjusted.isoformat() + '+02:00'
-                now = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
-                diff = eventStart - now
-                draw.text((x, top + (i*15)), 'Event in ' + str(round(diff.seconds/60)) + ' minutes', font=font, fill=255)
-                draw.text((x, top + ((i+1)*15)), event['summary'], font=font, fill=255)
-                i += 2
+            eventStartString = event['start'].get('dateTime', event['start'].get('dateTime'))
+            eventEndString = event['end'].get('dateTime', event['end'].get('dateTime'))
+            if eventStartString:
+                eventStart = datetime.datetime.strptime(eventStartString, "%Y-%m-%dT%H:%M:%S+02:00")
+                eventEnd = datetime.datetime.strptime(eventEndString, "%Y-%m-%dT%H:%M:%S+02:00")
+                eventTimes.append((eventStart, eventEnd))
+
+            if not firstEvent:
+                firstEvent = event
+            elif eventStart < datetime.datetime.strptime(firstEvent['start'].get('dateTime', event['start'].get('dateTime')), "%Y-%m-%dT%H:%M:%S+02:00"):
+                firstEvent = event
+
+    if firstEvent:
+        now = nowUnadjusted.isoformat() + '+02:00'
+        now = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
+
+        firstEventStart = datetime.datetime.strptime(firstEvent['start'].get('dateTime', event['start'].get('dateTime')), "%Y-%m-%dT%H:%M:%S+02:00"):
+        firstEventEnd = datetime.datetime.strptime(firstEvent['end'].get('dateTime', event['end'].get('dateTime')), "%Y-%m-%dT%H:%M:%S+02:00"):
+
+        #diff = eventStart - now
+            if eventStart < now:
+                draw.text((x, top + ((1)*15)), event['summary'], font=font, fill=255)
+                draw.text((x, top + ((2)*15)), 'Ongoing: ' firstEventStart + ' - ' + firstEventEnd , font=font, fill=255)
+                draw.text((x, top + ((3)*15)), event['location'], font=font, fill=255)
+            else
+                draw.text((x, top + ((1)*15)), event['summary'], font=font, fill=255)
+                draw.text((x, top + ((2)*15)), firstEventStart + ' - ' + firstEventEnd , font=font, fill=255)
+                draw.text((x, top + ((3)*15)), event['location'], font=font, fill=255)
+    else:
+        draw.text((x, top + (i*15)), 'No events in the next 3 hours', font=font, fill=255)
 
     disp.image(image)
     disp.display()
