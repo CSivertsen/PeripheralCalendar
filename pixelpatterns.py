@@ -1,13 +1,18 @@
-class pixelFader:
+import time
+
+class PixelFader:
+    fade = None
+    speed = None
+
     def __init__(self):
-        fade = 100
-        speed = 4000
+        self.fade = 100
+        self.speed = 4000
 
     def fade(self, colorRGB):
         for color in colorRGB:
-            color = color*fade
+            color = color * self.fade
         return colorRGB
 
     def update(self):
-        x = (time.time() * 1000 % 4000)/40
-        fade = fade * 100
+        x = (time.time() * 1000 % self.speed)/40
+        self.fade = x

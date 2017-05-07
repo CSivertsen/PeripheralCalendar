@@ -76,7 +76,8 @@ def main():
 
     global calendarHandler
     calendarHandler = googlecalendar.CalendarService()
-    global pixelFader = pixelpatterns.pixelFader()
+    global pixelFader
+    pixelFader = pixelpatterns.PixelFader()
 
     nowUnadjusted = datetime.datetime.now()
     now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
@@ -106,9 +107,10 @@ def main():
             if screenTimeout < nowUnadjusted - lastScreenActivation:
                 clearScreen()
 
+            pixelFader.update()
             showLeds(allEvents, now)
             checkButton(allEvents, nowUnadjusted)
-            pixelFader.update()
+
 
             # if screen is timed out, call clearScreen
 
@@ -126,7 +128,7 @@ def main():
         GPIO.cleanup()
         traceback.print_exc()
 
-def showLeds(allEvents, now ):
+def showLeds(allEvents, now):
     global horizonDelta
     global calendarHandler
     global pixelFader
@@ -164,7 +166,7 @@ def showLeds(allEvents, now ):
 
                             #Other events
                             else:
-                            strip.setPixelColor(i, Color(colorRGB[1], colorRGB[0], colorRGB[2]))
+                                strip.setPixelColor(i, Color(colorRGB[1], colorRGB[0], colorRGB[2]))
     strip.show()
 
 def checkButton(allEvents, nowUnadjusted):
