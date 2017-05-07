@@ -209,20 +209,24 @@ def showScreen(allEvents, nowUnadjusted):
         now = nowUnadjusted.isoformat() + '+02:00'
         now = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
 
-        firstEventStart = datetime.datetime.strptime(firstEvent['start'].get('dateTime', event['start'].get('dateTime')), "%Y-%m-%dT%H:%M:%S+02:00"):
-        firstEventEnd = datetime.datetime.strptime(firstEvent['end'].get('dateTime', event['end'].get('dateTime')), "%Y-%m-%dT%H:%M:%S+02:00"):
+        firstEventStart = datetime.datetime.strptime(firstEvent['start'].get('dateTime', event['start'].get('dateTime')), "%Y-%m-%dT%H:%M:%S+02:00")
+        firstEventEnd = datetime.datetime.strptime(firstEvent['end'].get('dateTime', event['end'].get('dateTime')), "%Y-%m-%dT%H:%M:%S+02:00")
 
         #diff = eventStart - now
-            if eventStart < now:
-                draw.text((x, top + ((1)*15)), event['summary'], font=font, fill=255)
-                draw.text((x, top + ((2)*15)), 'Ongoing: ' firstEventStart + ' - ' + firstEventEnd , font=font, fill=255)
-                draw.text((x, top + ((3)*15)), event['location'], font=font, fill=255)
-            else
-                draw.text((x, top + ((1)*15)), event['summary'], font=font, fill=255)
-                draw.text((x, top + ((2)*15)), firstEventStart + ' - ' + firstEventEnd , font=font, fill=255)
-                draw.text((x, top + ((3)*15)), event['location'], font=font, fill=255)
+        location = firstEvent.get('location')
+        if eventStart < now:
+            draw.text((x, top + ((0)*15)), firstEvent['summary'], font=font, fill=255)
+            draw.text((x, top + ((1)*15)), 'Ongoing: ' + firstEventStart.strftime('%H:%M') + ' - ' + firstEventEnd.strftime('%H:%M') , font=font, fill=255)
+            if location:
+                draw.text((x, top + ((2)*15)), location + ' ', font=font, fill=255)
+        else:
+            draw.text((x, top + ((0)*15)), firstEvent['summary'], font=font, fill=255)
+            draw.text((x, top + ((1)*15)), firstEventStart.strftime('%H:%M') + ' - ' + firstEventEnd.strftime('%H:%M') , font=font, fill=255)
+            if location:
+                draw.text((x, top + ((2)*15)), location + ' ', font=font, fill=255)
     else:
-        draw.text((x, top + (i*15)), 'No events in the next 3 hours', font=font, fill=255)
+        draw.text((x, top + (0*15)), 'No events in the', font=font, fill=255)
+        draw.text((x, top + (1*15)), 'next 3 hours', font=font, fill=255)
 
     disp.image(image)
     disp.display()
