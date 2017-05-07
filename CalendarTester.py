@@ -14,7 +14,7 @@ import traceback
 import datetime
 
 import googlecalendar
-horizonDelta = 240
+horizonDelta = 180
 calendarHandler = None
 
 # Pin Setup:
@@ -55,7 +55,7 @@ butPin = 25
 GPIO.setup(butPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 #LED strip config
-LED_COUNT       = 13
+LED_COUNT       = 12
 LED_PIN         = 18
 LED_FREQ_HZ     = 800000
 LED_DMA         = 5
@@ -123,42 +123,39 @@ def main():
 def showLeds(allEvents, now ):
     global horizonDelta
     global calendarHandler
-    timeLeft = []
+    #timeLeft = []
     #print('Showing Leds')
 
 
     for i in range(LED_COUNT):
-        strip.setPixelColor(i, Color(255, 255, 255))
+        strip.setPixelColor(i, Color(0, 0, 0))
 
         for calendarId in allEvents.keys():
             for event in allEvents[calendarId]:
 
                 start = event['start'].get('dateTime', event['start'].get('dateTime'))
+                end = event['end'].get('dateTime', event['end'].get('dateTime'))
                 if start:
-                    #print(event)
                     colorId = event.get('colorId')
                     colorRGB = calendarHandler.getEventColor(colorId, calendarId)
 
                     startTime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S+02:00")
+                    endTime = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S+02:00")
                     nowTime = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
-                    diff = startTime - nowTime
-                    #print(diff)
-                    if diff < datetime.timedelta(minutes=horizonDelta):
-                        timeLeft.append(diff)
-
-                for i in range(len(timeLeft)):
-                    onLed = abs(round(timeLeft[i].seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT)
-
+                    diffStart = startTime - nowTime
+                    diffEnd = endTime - nowTime
+                    firstLed = int(abs(round(diffStart.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
+                    lastLed = int(abs(round(diffEnd.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
+                    #print(firstLed, lastLed)
                     #If an event is due
-                    if onLed == LED_COUNT:
+                    if diffStart < datetime.timedelta(minutes=5):
                         for i in range(LED_COUNT):
                             strip.setPixelColor(i, Color(colorRGB[0], colorRGB[1], colorRGB[2]))
 
                     #For other events on the timeline
-                    else:
-                        for i in range(LED_COUNT):
-                            if i == onLed:
-                                strip.setPixelColor(i, Color(colorRGB[0], colorRGB[1], colorRGB[2]))
+                    for i in range(lastLed, firstLed):
+                            #print("Turning on Led: ", i)
+                            strip.setPixelColor(i, Color(colorRGB[0], colorRGB[1], colorRGB[2]))
     strip.show()
 
 def checkButton(allEvents, nowUnadjusted):

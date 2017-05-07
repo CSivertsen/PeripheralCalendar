@@ -47,7 +47,7 @@ class CalendarService:
         for calendarId in allEvents.keys():
             for event in allEvents[calendarId]:
                 start = event['start'].get('dateTime', event['start'].get('date'))
-                print(start, event['summary'])
+                print(start, event['summary'], self.getEventColor(event.get('colorId'),calendarId))
 
         return allEvents
 
@@ -64,7 +64,7 @@ class CalendarService:
               self.calendarColors[calendarId] = calendar_list_entry.get('colorId')
             page_token = calendar_list.get('nextPageToken')
             if not page_token:
-                print(self.calendarColors)
+                #print(self.calendarColors)
                 return calendarIDs
 
     def getEventColor(self, colorId, calendarId):
