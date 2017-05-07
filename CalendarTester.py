@@ -15,6 +15,7 @@ import datetime
 
 import googlecalendar
 horizonDelta = 240
+calendarHandler = None
 
 # Pin Setup:
 GPIO.setmode(GPIO.BCM) # Broadcom pin-numbering scheme
@@ -69,6 +70,7 @@ strip.show()
 
 def main():
 
+    global calendarHandler
     calendarHandler = googlecalendar.CalendarService()
 
     nowUnadjusted = datetime.datetime.now()
@@ -120,6 +122,7 @@ def main():
 
 def showLeds(allEvents, now ):
     global horizonDelta
+    global calendarHandler
     timeLeft = []
     #print('Showing Leds')
 
@@ -127,10 +130,15 @@ def showLeds(allEvents, now ):
     for i in range(LED_COUNT):
         strip.setPixelColor(i, Color(255, 255, 255))
 
-        for events in allEvents:
-            for event in events:
+        for calendarId in allEvents.keys():
+            for event in allEvents[calendarId]:
+
                 start = event['start'].get('dateTime', event['start'].get('dateTime'))
                 if start:
+                    print(event)
+                    colorId = event.get('colorId')
+                    colorRGB = calendarHandler.getEventColor(colorId, calendarId)
+
                     startTime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S+02:00")
                     nowTime = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
                     diff = startTime - nowTime
@@ -144,13 +152,13 @@ def showLeds(allEvents, now ):
                     #If an event is due
                     if onLed == LED_COUNT:
                         for i in range(LED_COUNT):
-                            strip.setPixelColor(i, Color(0, 150, 255))
+                            strip.setPixelColor(i, Color(colorRGB[0], colorRGB[1], colorRGB[2]))
 
                     #For other events on the timeline
                     else:
                         for i in range(LED_COUNT):
                             if i == onLed:
-                                strip.setPixelColor(i, Color(0, 150, 255))
+                                strip.setPixelColor(i, Color(colorRGB[0], colorRGB[1], colorRGB[2]))
     strip.show()
 
 def checkButton(allEvents, nowUnadjusted):
@@ -173,8 +181,8 @@ def checkButton(allEvents, nowUnadjusted):
 
 def showScreen(allEvents, nowUnadjusted):
     i = 0
-    for events in allEvents:
-        for event in events:
+    for calendarId in allEvents.keys():
+        for event in allEvents[calendarId]:
             eventStart = event['start'].get('dateTime', event['start'].get('dateTime'))
             if eventStart:
                 eventStart = datetime.datetime.strptime(eventStart, "%Y-%m-%dT%H:%M:%S+02:00")
@@ -205,7 +213,6 @@ def shutdown():
     GPIO.cleanup()
     print('Shutting down RaspPi')
     os.system("sudo shutdown -h now")
-
 
 if __name__ == '__main__':
     main()

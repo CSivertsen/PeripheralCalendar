@@ -18,6 +18,7 @@ except ImportError:
 
 class CalendarService:
     service = None
+    calendarColors = {}
 
     # If modifying these scopes, delete your previously saved credentials
     # at ~/.credentials/calendar-python-quickstart.json
@@ -28,22 +29,23 @@ class CalendarService:
     def __init__(self):
         self.service = self.authenticate()
         self.calendarIds = self.getCalendars()
+        self.colors = self.service.colors().get().execute()
 
     def getEvents(self, now, horizon):
-        allEvents = []
+        allEvents = {}
 
         print('Getting events within time horizon')
         for calendarId in self.calendarIds:
             eventsResult = self.service.events().list(
                 calendarId=calendarId, timeMin=now, timeMax=horizon, singleEvents=True,
                 orderBy='startTime').execute()
-            allEvents.append(eventsResult.get('items', []))
+            allEvents[calendarId]= eventsResult.get('items', [])
             #print(eventsResult.get('items', []))
 
         if not allEvents:
-            print('No upcoming events found.')
-        for events in allEvents:
-            for event in events:
+            print('You have no events in the next 4 hours')
+        for calendarId in allEvents.keys():
+            for event in allEvents[calendarId]:
                 start = event['start'].get('dateTime', event['start'].get('date'))
                 print(start, event['summary'])
 
@@ -53,13 +55,42 @@ class CalendarService:
         page_token = None
         calendarIDs = []
         while True:
-          calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
-          for calendar_list_entry in calendar_list['items']:
-              print(calendar_list_entry.get('summary'))
-              calendarIDs.append(calendar_list_entry.get('id'))
-          page_token = calendar_list.get('nextPageToken')
-          if not page_token:
+            calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
+
+        for calendar_list_entry in calendar_list['items']:
+          #print(calendar_list_entry.get('summary'))
+          calendarId = calendar_list_entry.get('id')
+          calendarIDs.append(calendarId)
+          self.calendarColors[calendarId] = calendar_list_entry.get('foregroundColor')
+        page_token = calendar_list.get('nextPageToken')
+        if not page_token:
             return calendarIDs
+
+    def getEventColor(self, colorId, calendarId):
+        if colorId:
+            colorHex = self.colors['event'][colorId]['foreground']
+        else:
+            colorHex = self.calendarColors[calendarId]
+
+        print(colorId)
+        print(colorHex)
+        colorRGB = self.hex_to_rgb(colorHex)
+        return colorRGB
+
+        #try:
+        #    colorHex = self.colors.get('event').get(colorId).get('foreground')
+        #    colorRGB = hex_to_rgb(colorHex)
+        #except:
+        #    print("Colors not loaded")
+        #    colorRGB = (255,255,255)
+        #return colorRGB
+
+    def hex_to_rgb(value):
+        """Return (red, green, blue) for the color given as #rrggbb."""
+        value = value.lstrip('#')
+        lv = len(value)
+        return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+
 
     def authenticate(self):
         """Gets valid user credentials from storage.
