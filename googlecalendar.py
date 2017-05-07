@@ -35,9 +35,10 @@ class CalendarService:
         print('Getting events within time horizon')
         for calendarId in self.calendarIds:
             eventsResult = self.service.events().list(
-                calendarId='ot793f9fdo9anh2d86jmm6pjrg@group.calendar.google.com', timeMin=now, timeMax=horizon, singleEvents=True,
+                calendarId=calendarId, timeMin=now, timeMax=horizon, singleEvents=True,
                 orderBy='startTime').execute()
-            allEvents = eventsResult.get('items', [])
+            allEvents.append(eventsResult.get('items', []))
+            #print(eventsResult.get('items', []))
 
         if not allEvents:
             print('No upcoming events found.')
@@ -54,7 +55,7 @@ class CalendarService:
         while True:
           calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
           for calendar_list_entry in calendar_list['items']:
-              #print(calendar_list_entry.get('id'))
+              print(calendar_list_entry.get('summary'))
               calendarIDs.append(calendar_list_entry.get('id'))
           page_token = calendar_list.get('nextPageToken')
           if not page_token:

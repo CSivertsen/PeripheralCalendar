@@ -9,6 +9,8 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
+import traceback
+
 import datetime
 
 import googlecalendar
@@ -91,8 +93,8 @@ def main():
             if datetime.timedelta(minutes=1) < nowUnadjusted - lastGoogleCall:
                 allEvents = calendarHandler.getEvents(now, horizon)
                 lastGoogleCall = nowUnadjusted
-                print(now)
-                print(horizon)
+                #print(now)
+                #print(horizon)
 
             if screenTimeout < nowUnadjusted - lastScreenActivation:
                 clearScreen()
@@ -120,29 +122,35 @@ def showLeds(allEvents, now ):
     global horizonDelta
     timeLeft = []
     #print('Showing Leds')
-    for events in allEvents:
-        for event in events:
-            start = event['start'].get('dateTime', event['start'].get('dateTime'))
-            if start:
-                startTime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S+02:00")
-                nowTime = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
-                diff = startTime - nowTime
-                #print(diff)
-                if diff < datetime.timedelta(minutes=horizonDelta):
-                    timeLeft.append(diff)
+
 
     for i in range(LED_COUNT):
         strip.setPixelColor(i, Color(255, 255, 255))
 
-    for i in range(len(timeLeft)):
-        onLed = abs(round(timeLeft[i].seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT)
-        if onLed == LED_COUNT:
-            for i in range(LED_COUNT):
-                strip.setPixelColor(i, Color(0, 150, 255))
-        else:
-            for i in range(LED_COUNT):
-                if i == onLed:
-                    strip.setPixelColor(i, Color(0, 150, 255))
+        for events in allEvents:
+            for event in events:
+                start = event['start'].get('dateTime', event['start'].get('dateTime'))
+                if start:
+                    startTime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S+02:00")
+                    nowTime = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
+                    diff = startTime - nowTime
+                    #print(diff)
+                    if diff < datetime.timedelta(minutes=horizonDelta):
+                        timeLeft.append(diff)
+
+                for i in range(len(timeLeft)):
+                    onLed = abs(round(timeLeft[i].seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT)
+
+                    #If an event is due
+                    if onLed == LED_COUNT:
+                        for i in range(LED_COUNT):
+                            strip.setPixelColor(i, Color(0, 150, 255))
+
+                    #For other events on the timeline
+                    else:
+                        for i in range(LED_COUNT):
+                            if i == onLed:
+                                strip.setPixelColor(i, Color(0, 150, 255))
     strip.show()
 
 def checkButton(allEvents, nowUnadjusted):
@@ -152,7 +160,7 @@ def checkButton(allEvents, nowUnadjusted):
     if not GPIO.input(butPin) and not buttonWasOn:
         lastScreenActivation = nowUnadjusted
         buttonActivation = nowUnadjusted
-        showScreen(events, nowUnadjusted)
+        showScreen(allEvents, nowUnadjusted)
         buttonWasOn = True
 
     if not GPIO.input(butPin) and buttonWasOn:
