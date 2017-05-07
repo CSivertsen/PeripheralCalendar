@@ -61,19 +61,21 @@ class CalendarService:
               #print(calendar_list_entry.get('summary'))
               calendarId = calendar_list_entry.get('id')
               calendarIDs.append(calendarId)
-              self.calendarColors[calendarId] = calendar_list_entry.get('foregroundColor')
+              self.calendarColors[calendarId] = calendar_list_entry.get('colorId')
             page_token = calendar_list.get('nextPageToken')
             if not page_token:
+                print(self.calendarColors)
                 return calendarIDs
 
     def getEventColor(self, colorId, calendarId):
         if colorId:
-            colorHex = self.colors['event'][colorId]['foreground']
+            colorHex = self.colors['event'][colorId]['background']
         else:
-            colorHex = self.calendarColors[calendarId]
+            colorId = self.calendarColors[calendarId]
+            colorHex = self.colors['event'][colorId]['background']
 
-        print(colorId)
-        print(colorHex)
+        #print(colorId)
+        #print(colorHex)
         colorRGB = self.hex_to_rgb(colorHex)
         return colorRGB
 
@@ -85,7 +87,7 @@ class CalendarService:
         #    colorRGB = (255,255,255)
         #return colorRGB
 
-    def hex_to_rgb(value):
+    def hex_to_rgb(self, value):
         """Return (red, green, blue) for the color given as #rrggbb."""
         value = value.lstrip('#')
         lv = len(value)

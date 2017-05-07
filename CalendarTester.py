@@ -135,7 +135,7 @@ def showLeds(allEvents, now ):
 
                 start = event['start'].get('dateTime', event['start'].get('dateTime'))
                 if start:
-                    print(event)
+                    #print(event)
                     colorId = event.get('colorId')
                     colorRGB = calendarHandler.getEventColor(colorId, calendarId)
 
