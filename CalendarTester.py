@@ -216,7 +216,7 @@ def showScreen(allEvents, nowUnadjusted):
         location = firstEvent.get('location')
         if eventStart < now:
             draw.text((x, top + ((0)*15)), firstEvent['summary'], font=font, fill=255)
-            draw.text((x, top + ((1)*15)), 'Ongoing: ' + firstEventStart.strftime('%H:%M') + ' - ' + firstEventEnd.strftime('%H:%M') , font=font, fill=255)
+            draw.text((x, top + ((1)*15)), 'Now: ' + firstEventStart.strftime('%H:%M') + ' - ' + firstEventEnd.strftime('%H:%M') , font=font, fill=255)
             if location:
                 draw.text((x, top + ((2)*15)), location + ' ', font=font, fill=255)
         else:
