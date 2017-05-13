@@ -199,12 +199,12 @@ def showScreen(allEvents, nowUnadjusted):
             draw.text((x, top + ((0)*15)), firstEvent.summary, font=font, fill=255)
             draw.text((x, top + ((1)*15)), 'Now: ' + firstEvent.start.time() + ' - ' + firstEvent.end.time() , font=font, fill=255)
             #if firstEvent.location:
-                draw.text((x, top + ((2)*15)), firstEvent.location + ' ', font=font, fill=255)
+            draw.text((x, top + ((2)*15)), firstEvent.location + ' ', font=font, fill=255)
         else:
             draw.text((x, top + ((0)*15)), firstEvent.summary, font=font, fill=255)
             draw.text((x, top + ((1)*15)), firstEvent.start.time() + ' - ' + firstEvent.end(time(), font=font, fill=255)
             #if firstEvent.location:
-                draw.text((x, top + ((2)*15)), firstEvent.location + ' ', font=font, fill=255)
+            draw.text((x, top + ((2)*15)), firstEvent.location + ' ', font=font, fill=255)
     else:
         draw.text((x, top + (0*15)), 'No events in the', font=font, fill=255)
         draw.text((x, top + (1*15)), 'next 3 hours', font=font, fill=255)
