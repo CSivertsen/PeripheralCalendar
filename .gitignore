@@ -90,3 +90,8 @@ ENV/
 client_id.json
 client_secret.json
 quickstart.py
+googlecalendar_jeffrey.py
+googlecalendar_jan.py
+googlecalendar_jop.py
+googlecalendar_tom.py
+googlecalendar_mitchell.py

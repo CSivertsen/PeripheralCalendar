@@ -7,14 +7,11 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
-import datetime
-
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
 except ImportError:
     flags = None
-
 
 class CalendarService:
     service = None
@@ -31,8 +28,10 @@ class CalendarService:
         self.calendarIds = self.getCalendars()
         self.colors = self.service.colors().get().execute()
 
-    def getEvents(self, now, horizon):
+    def getEvents(self, nowUnadjusted, horizon):
         allEvents = {}
+        filteredEventObjects = []
+        now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
 
         print('Getting events within time horizon')
         for calendarId in self.calendarIds:
@@ -40,16 +39,26 @@ class CalendarService:
                 calendarId=calendarId, timeMin=now, timeMax=horizon, singleEvents=True,
                 orderBy='startTime').execute()
             allEvents[calendarId]= eventsResult.get('items', [])
-            #print(eventsResult.get('items', []))
+
 
         if not allEvents:
-            print('You have no events in the next 4 hours')
+            print('You have no events in the next 3 hours')
         for calendarId in allEvents.keys():
             for event in allEvents[calendarId]:
-                start = event['start'].get('dateTime', event['start'].get('date'))
-                print(start, event['summary'], self.getEventColor(event.get('colorId'),calendarId))
 
-        return allEvents
+                filteredEventObjects.append(CalendarEvent(
+                    event['start'].get('dateTime', event['start'].get('date')),
+                    event['end'].get('dateTime', event['end'].get('date')),
+                    event['summary'],
+                    event['location'],
+                    event['colorId'],
+                    calendarId
+                    ))
+
+                #start = event['start'].get('dateTime', event['start'].get('date'))
+                #print(start, event['summary'], self.getEventColor(event.get('colorId'),calendarId))
+
+        return filteredEventObjects
 
     def getCalendars(self):
         page_token = None
@@ -60,39 +69,14 @@ class CalendarService:
             for calendar_list_entry in calendar_list['items']:
               #print(calendar_list_entry.get('summary'))
               calendarId = calendar_list_entry.get('id')
-              calendarIDs.append(calendarId)
-              self.calendarColors[calendarId] = calendar_list_entry.get('colorId')
+              #Insert specific calendars here
+              if True:
+                  calendarIDs.append(calendarId)
+                  self.calendarColors[calendarId] = calendar_list_entry.get('colorId')
             page_token = calendar_list.get('nextPageToken')
             if not page_token:
                 #print(self.calendarColors)
                 return calendarIDs
-
-    def getEventColor(self, colorId, calendarId):
-        if colorId:
-            colorHex = self.colors['event'][colorId]['background']
-        else:
-            colorId = self.calendarColors[calendarId]
-            colorHex = self.colors['event'][colorId]['background']
-
-        #print(colorId)
-        #print(colorHex)
-        colorRGB = self.hex_to_rgb(colorHex)
-        return colorRGB
-
-        #try:
-        #    colorHex = self.colors.get('event').get(colorId).get('foreground')
-        #    colorRGB = hex_to_rgb(colorHex)
-        #except:
-        #    print("Colors not loaded")
-        #    colorRGB = (255,255,255)
-        #return colorRGB
-
-    def hex_to_rgb(self, value):
-        """Return (red, green, blue) for the color given as #rrggbb."""
-        value = value.lstrip('#')
-        lv = len(value)
-        return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
-
 
     def authenticate(self):
         """Gets valid user credentials from storage.
@@ -122,3 +106,41 @@ class CalendarService:
         http = credentials.authorize(httplib2.Http())
         service = discovery.build('calendar', 'v3', http=http)
         return service
+
+class calendarEvent:
+    startTime = None
+    endTime = None
+    colorRGB = None
+    summary = None
+    location = None
+    calendarId = None
+
+    def __init__(self, start, end, summary, location, color, calendarId):
+        self.startTime = dateutil.parser.parse(start)
+        self.endTime = dateutil.parser.parse(end)
+        self.summary = summary
+        self.location = location
+        self.calendarId = calendarId
+        self.color = self.getEventColor(color, calendarId)
+
+    def hex_to_rgb(self, value):
+        """Return (red, green, blue) for the color given as #rrggbb."""
+        value = value.lstrip('#')
+        lv = len(value)
+        return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+
+    def getEventColor(self, colorId, calendarId):
+        if colorId:
+            colorHex = self.colors['event'][colorId]['background']
+        else:
+            colorId = self.calendarColors[calendarId]
+            try:
+                colorHex = self.colors['event'][colorId]['background']
+            except:
+                #print("Color not recognized using Red")
+                colorHex = '#FF0000'
+
+        #print(colorId)
+        #print(colorHex)
+        colorRGB = self.hex_to_rgb(colorHex)
+        return colorRGB

@@ -12,6 +12,7 @@ from PIL import ImageFont
 import traceback
 
 import datetime
+import dateutil.parser
 
 import googlecalendar
 horizonDelta = 180
@@ -82,7 +83,6 @@ def main():
     nowUnadjusted = datetime.datetime.now()
     now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
     horizon = (nowUnadjusted+datetime.timedelta(minutes=horizonDelta)).isoformat() + '+02:00'
-
     calendars = calendarHandler.getCalendars()
     allEvents = calendarHandler.getEvents(now, horizon)
     lastGoogleCall = nowUnadjusted
@@ -96,10 +96,10 @@ def main():
             #now = datetime.datetime.now() + datetime.timedelta(hours=2)
             # Only check this every 5 minutes
             nowUnadjusted = datetime.datetime.now()
-            now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
 
             if datetime.timedelta(minutes=1) < nowUnadjusted - lastGoogleCall:
-                allEvents = calendarHandler.getEvents(now, horizon)
+                horizon = (nowUnadjusted+datetime.timedelta(minutes=horizonDelta)).isoformat() + '+02:00'
+                allEvents = calendarHandler.getEvents(nowUnadjusted, horizon)
                 lastGoogleCall = nowUnadjusted
                 #print(now)
                 #print(horizon)
@@ -108,10 +108,8 @@ def main():
                 clearScreen()
 
             #pixelFader.update()
-            showLeds(allEvents, now)
+            showLeds(allEvents, nowUnadjusted)
             checkButton(allEvents, nowUnadjusted)
-
-
             # if screen is timed out, call clearScreen
 
     except KeyboardInterrupt:
@@ -135,39 +133,28 @@ def showLeds(allEvents, now):
     #timeLeft = []
     #print('Showing Leds')
 
-
     for i in range(LED_COUNT):
         strip.setPixelColor(i, Color(10, 10, 10))
 
-        for calendarId in allEvents.keys():
-            for event in allEvents[calendarId]:
+        for event in allEvents:
+            if start:
+                diffStart = event.start - now
+                diffEnd = event.end - now
+                firstLed = int(abs(round(diffStart.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
+                lastLed = int(abs(round(diffEnd.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
+                #print(firstLed, lastLed)
 
-                start = event['start'].get('dateTime', event['start'].get('dateTime'))
-                end = event['end'].get('dateTime', event['end'].get('dateTime'))
-                if start:
-                    colorId = event.get('colorId')
-                    colorRGB = calendarHandler.getEventColor(colorId, calendarId)
+                #For other events on the timeline
+                for i in range(lastLed, firstLed):
+                        #If an event is ongoing
+                        if diffStart < datetime.timedelta(minutes=5):
+                            fadedColor = pixelFader.fade(colorRGB)
+                            #print(fadedColor)
+                            strip.setPixelColor(i, Color(fadedColor[1], fadedColor[0], fadedColor[2]))
 
-                    startTime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S+02:00")
-                    endTime = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S+02:00")
-                    nowTime = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
-                    diffStart = startTime - nowTime
-                    diffEnd = endTime - nowTime
-                    firstLed = int(abs(round(diffStart.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
-                    lastLed = int(abs(round(diffEnd.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
-                    #print(firstLed, lastLed)
-
-                    #For other events on the timeline
-                    for i in range(lastLed, firstLed):
-                            #If an event is ongoing
-                            if diffStart < datetime.timedelta(minutes=5):
-                                fadedColor = pixelFader.fade(colorRGB)
-                                #print(fadedColor)
-                                strip.setPixelColor(i, Color(fadedColor[1], fadedColor[0], fadedColor[2]))
-
-                            #Other events
-                            else:
-                                strip.setPixelColor(i, Color(colorRGB[1], colorRGB[0], colorRGB[2]))
+                        #Other events
+                        else:
+                            strip.setPixelColor(i, Color(colorRGB[1], colorRGB[0], colorRGB[2]))
     strip.show()
 
 def checkButton(allEvents, nowUnadjusted):
@@ -191,39 +178,33 @@ def checkButton(allEvents, nowUnadjusted):
 def showScreen(allEvents, nowUnadjusted):
     eventTimes = []
     firstEvent = None
-    for calendarId in allEvents.keys():
-        for event in allEvents[calendarId]:
-            eventStartString = event['start'].get('dateTime', event['start'].get('dateTime'))
-            eventEndString = event['end'].get('dateTime', event['end'].get('dateTime'))
-            if eventStartString:
-                eventStart = datetime.datetime.strptime(eventStartString, "%Y-%m-%dT%H:%M:%S+02:00")
-                eventEnd = datetime.datetime.strptime(eventEndString, "%Y-%m-%dT%H:%M:%S+02:00")
-                eventTimes.append((eventStart, eventEnd))
+        for event in allEvents:
+            if not event.start.time():
+                break
 
-            if not firstEvent:
-                firstEvent = event
-            elif eventStart < datetime.datetime.strptime(firstEvent['start'].get('dateTime', event['start'].get('dateTime')), "%Y-%m-%dT%H:%M:%S+02:00"):
-                firstEvent = event
+            #Assembles all events into a list
+            else:
+                eventTimes.append((event.start, event.end))
+
+            #Find the event in the list with the earliest start time
+            if eventStartString:
+                if not firstEvent:
+                    firstEvent = event
+                elif eventStart < firstEvent.start:
+                    firstEvent = event
 
     if firstEvent:
-        now = nowUnadjusted.isoformat() + '+02:00'
-        now = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%S.%f+02:00")
 
-        firstEventStart = datetime.datetime.strptime(firstEvent['start'].get('dateTime', event['start'].get('dateTime')), "%Y-%m-%dT%H:%M:%S+02:00")
-        firstEventEnd = datetime.datetime.strptime(firstEvent['end'].get('dateTime', event['end'].get('dateTime')), "%Y-%m-%dT%H:%M:%S+02:00")
-
-        #diff = eventStart - now
-        location = firstEvent.get('location')
-        if eventStart < now:
-            draw.text((x, top + ((0)*15)), firstEvent['summary'], font=font, fill=255)
-            draw.text((x, top + ((1)*15)), 'Now: ' + firstEventStart.strftime('%H:%M') + ' - ' + firstEventEnd.strftime('%H:%M') , font=font, fill=255)
-            if location:
-                draw.text((x, top + ((2)*15)), location + ' ', font=font, fill=255)
+        if firstEvent.start < now:
+            draw.text((x, top + ((0)*15)), firstEvent.summary, font=font, fill=255)
+            draw.text((x, top + ((1)*15)), 'Now: ' + firstEvent.start.time() + ' - ' + firstEvent.end.time() , font=font, fill=255)
+            if first.event.location:
+                draw.text((x, top + ((2)*15)), firstEvent.location + ' ', font=font, fill=255)
         else:
-            draw.text((x, top + ((0)*15)), firstEvent['summary'], font=font, fill=255)
-            draw.text((x, top + ((1)*15)), firstEventStart.strftime('%H:%M') + ' - ' + firstEventEnd.strftime('%H:%M') , font=font, fill=255)
+            draw.text((x, top + ((0)*15)), firstEvent.summary, font=font, fill=255)
+            draw.text((x, top + ((1)*15)), firstEvent.start.time() + ' - ' + firstEvent.end(time(), font=font, fill=255)
             if location:
-                draw.text((x, top + ((2)*15)), location + ' ', font=font, fill=255)
+                draw.text((x, top + ((2)*15)), firstEvent.location + ' ', font=font, fill=255)
     else:
         draw.text((x, top + (0*15)), 'No events in the', font=font, fill=255)
         draw.text((x, top + (1*15)), 'next 3 hours', font=font, fill=255)
