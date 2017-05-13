@@ -82,8 +82,8 @@ def main():
     pixelFader = pixelpatterns.PixelFader()
 
     nowUnadjusted = local_tz.localize(datetime.datetime.now())
-    now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
-    horizon = (nowUnadjusted+datetime.timedelta(minutes=horizonDelta)).isoformat() + '+02:00'
+    now = nowUnadjusted.isoformat() # 'Z' indicates UTC time1
+    horizon = (nowUnadjusted+datetime.timedelta(minutes=horizonDelta)).isoformat()
     calendars = calendarHandler.getCalendars()
     allEvents = calendarHandler.getEvents(nowUnadjusted, horizon)
     lastGoogleCall = nowUnadjusted
@@ -99,7 +99,7 @@ def main():
             nowUnadjusted = local_tz.localize(datetime.datetime.now())
 
             if datetime.timedelta(minutes=1) < nowUnadjusted - lastGoogleCall:
-                horizon = (nowUnadjusted+datetime.timedelta(minutes=horizonDelta)).isoformat() + '+02:00'
+                horizon = (nowUnadjusted+datetime.timedelta(minutes=horizonDelta)).isoformat()
                 allEvents = calendarHandler.getEvents(nowUnadjusted, horizon)
                 lastGoogleCall = nowUnadjusted
                 #print(now)
