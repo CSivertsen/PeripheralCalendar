@@ -146,15 +146,15 @@ def showLeds(allEvents, now):
 
                 #For other events on the timeline
                 for i in range(lastLed, firstLed):
-                        #If an event is ongoing
-                        if diffStart < datetime.timedelta(minutes=5):
-                            fadedColor = pixelFader.fade(colorRGB)
-                            #print(fadedColor)
-                            strip.setPixelColor(i, Color(fadedColor[1], fadedColor[0], fadedColor[2]))
+                    #If an event is ongoing
+                    if diffStart < datetime.timedelta(minutes=5):
+                        fadedColor = pixelFader.fade(colorRGB)
+                        #print(fadedColor)
+                        strip.setPixelColor(i, Color(fadedColor[1], fadedColor[0], fadedColor[2]))
 
-                        #Other events
-                        else:
-                            strip.setPixelColor(i, Color(colorRGB[1], colorRGB[0], colorRGB[2]))
+                    #Other events
+                    else:
+                        strip.setPixelColor(i, Color(colorRGB[1], colorRGB[0], colorRGB[2]))
     strip.show()
 
 def checkButton(allEvents, nowUnadjusted):
@@ -178,20 +178,20 @@ def checkButton(allEvents, nowUnadjusted):
 def showScreen(allEvents, nowUnadjusted):
     eventTimes = []
     firstEvent = None
-        for event in allEvents:
-            if not event.start.time():
-                break
+    for event in allEvents:
+        if not event.start.time():
+            break
 
-            #Assembles all events into a list
-            else:
-                eventTimes.append((event.start, event.end))
+        #Assembles all events into a list
+        else:
+            eventTimes.append((event.start, event.end))
 
-            #Find the event in the list with the earliest start time
-            if eventStartString:
-                if not firstEvent:
-                    firstEvent = event
-                elif eventStart < firstEvent.start:
-                    firstEvent = event
+        #Find the event in the list with the earliest start time
+        if eventStartString:
+            if not firstEvent:
+                firstEvent = event
+            elif eventStart < firstEvent.start:
+                firstEvent = event
 
     if firstEvent:
 
