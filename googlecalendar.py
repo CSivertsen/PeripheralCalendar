@@ -107,7 +107,7 @@ class CalendarService:
         service = discovery.build('calendar', 'v3', http=http)
         return service
 
-class calendarEvent:
+class CalendarEvent:
     startTime = None
     endTime = None
     colorRGB = None
