@@ -12,6 +12,7 @@ from PIL import ImageFont
 import traceback
 
 import datetime
+import pytz
 
 import googlecalendar
 horizonDelta = 180
@@ -79,7 +80,7 @@ def main():
     global pixelFader
     pixelFader = pixelpatterns.PixelFader()
 
-    nowUnadjusted = datetime.datetime.now()
+    nowUnadjusted = datetime.datetime.now(timezone('Europe/Amsterdam'))
     now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
     horizon = (nowUnadjusted+datetime.timedelta(minutes=horizonDelta)).isoformat() + '+02:00'
     calendars = calendarHandler.getCalendars()
@@ -94,7 +95,7 @@ def main():
         while True:
             #now = datetime.datetime.now() + datetime.timedelta(hours=2)
             # Only check this every 5 minutes
-            nowUnadjusted = datetime.datetime.now()
+            nowUnadjusted = datetime.datetime.now(timezone('Europe/Amsterdam'))
 
             if datetime.timedelta(minutes=1) < nowUnadjusted - lastGoogleCall:
                 horizon = (nowUnadjusted+datetime.timedelta(minutes=horizonDelta)).isoformat() + '+02:00'
