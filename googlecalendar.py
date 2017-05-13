@@ -49,9 +49,9 @@ class CalendarService:
                 filteredEventObjects.append(CalendarEvent(
                     event['start'].get('dateTime', event['start'].get('date')),
                     event['end'].get('dateTime', event['end'].get('date')),
-                    event['summary'],
-                    event['location'],
-                    event['colorId'],
+                    event.get('summary'),
+                    event('location'),
+                    event('colorId'),
                     calendarId
                     ))
 
@@ -66,7 +66,7 @@ class CalendarService:
         while True:
             calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
 
-            for calendar_list_entry in calendar_list['items']:
+            for calendar_list_entry in calendar_list.get('items'):
               #print(calendar_list_entry.get('summary'))
               calendarId = calendar_list_entry.get('id')
               #Insert specific calendars here
@@ -131,9 +131,9 @@ class CalendarEvent:
 
     def getEventColor(self, colorId, calendarId):
         if colorId:
-            colorHex = self.colors['event'][colorId]['background']
+            colorHex = self.colors['event'][colorId].get('background')
         else:
-            colorId = self.calendarColors[calendarId]
+            colorId = self.calendarColors.get(calendarId)
             try:
                 colorHex = self.colors['event'][colorId]['background']
             except:
