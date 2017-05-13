@@ -34,6 +34,7 @@ class CalendarService:
         allEvents = {}
         filteredEventObjects = []
         now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
+        print(now)
 
         print('Getting events within time horizon')
         for calendarId in self.calendarIds:
