@@ -53,7 +53,7 @@ class CalendarService:
                     event['end'].get('dateTime', event['end'].get('date')),
                     event.get('summary'),
                     event.get('location'),
-                    event.get('colorId'),
+                    self.getEventColor(event.get('colorId'), calendarId),
                     calendarId
                     ))
 
@@ -139,7 +139,7 @@ class CalendarEvent:
         self.summary = summary
         self.location = location
         self.calendarId = calendarId
-        self.color = self.getEventColor(color, calendarId)
+        self.color = color
 
     def hex_to_rgb(self, value):
         """Return (red, green, blue) for the color given as #rrggbb."""
