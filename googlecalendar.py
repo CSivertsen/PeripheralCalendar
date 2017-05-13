@@ -96,6 +96,12 @@ class CalendarService:
         colorRGB = self.hex_to_rgb(colorHex)
         return colorRGB
 
+    def hex_to_rgb(self, value):
+        """Return (red, green, blue) for the color given as #rrggbb."""
+        value = value.lstrip('#')
+        lv = len(value)
+        return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+
     def authenticate(self):
         """Gets valid user credentials from storage.
 
@@ -140,9 +146,3 @@ class CalendarEvent:
         self.location = location
         self.calendarId = calendarId
         self.color = color
-
-    def hex_to_rgb(self, value):
-        """Return (red, green, blue) for the color given as #rrggbb."""
-        value = value.lstrip('#')
-        lv = len(value)
-        return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
