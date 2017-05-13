@@ -80,6 +80,22 @@ class CalendarService:
                 #print(self.calendarColors)
                 return calendarIDs
 
+    def getEventColor(self, colorId, calendarId):
+        if colorId:
+            colorHex = self.colors['event'][colorId].get('background')
+        else:
+            colorId = self.calendarColors.get(calendarId)
+            try:
+                colorHex = self.colors['event'][colorId]['background']
+            except:
+                #print("Color not recognized using Red")
+                colorHex = '#FF0000'
+
+        #print(colorId)
+        #print(colorHex)
+        colorRGB = self.hex_to_rgb(colorHex)
+        return colorRGB
+
     def authenticate(self):
         """Gets valid user credentials from storage.
 
@@ -130,19 +146,3 @@ class CalendarEvent:
         value = value.lstrip('#')
         lv = len(value)
         return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
-
-    def getEventColor(self, colorId, calendarId):
-        if colorId:
-            colorHex = self.colors['event'][colorId].get('background')
-        else:
-            colorId = self.calendarColors.get(calendarId)
-            try:
-                colorHex = self.colors['event'][colorId]['background']
-            except:
-                #print("Color not recognized using Red")
-                colorHex = '#FF0000'
-
-        #print(colorId)
-        #print(colorHex)
-        colorRGB = self.hex_to_rgb(colorHex)
-        return colorRGB
