@@ -12,7 +12,6 @@ from PIL import ImageFont
 import traceback
 
 import datetime
-import dateutil.parser
 
 import googlecalendar
 horizonDelta = 180
