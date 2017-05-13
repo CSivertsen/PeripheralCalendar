@@ -74,7 +74,7 @@ strip.show()
 
 
 def main():
-    local_tz = timezone('Europe/Amsterdam')
+    local_tz = pytz.timezone('Europe/Amsterdam')
 
     global calendarHandler
     calendarHandler = googlecalendar.CalendarService()
