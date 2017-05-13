@@ -50,8 +50,8 @@ class CalendarService:
                     event['start'].get('dateTime', event['start'].get('date')),
                     event['end'].get('dateTime', event['end'].get('date')),
                     event.get('summary'),
-                    event('location'),
-                    event('colorId'),
+                    event.get('location'),
+                    event.get('colorId'),
                     calendarId
                     ))
 
