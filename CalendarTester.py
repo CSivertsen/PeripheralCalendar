@@ -84,7 +84,7 @@ def main():
     now = nowUnadjusted.isoformat() + '+02:00' # 'Z' indicates UTC time1
     horizon = (nowUnadjusted+datetime.timedelta(minutes=horizonDelta)).isoformat() + '+02:00'
     calendars = calendarHandler.getCalendars()
-    allEvents = calendarHandler.getEvents(now, horizon)
+    allEvents = calendarHandler.getEvents(nowUnadjusted, horizon)
     lastGoogleCall = nowUnadjusted
     global lastScreenActivation
     lastScreenActivation = nowUnadjusted
