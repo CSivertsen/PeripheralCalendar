@@ -136,7 +136,7 @@ def showLeds(allEvents, now):
         strip.setPixelColor(i, Color(10, 10, 10))
 
         for event in allEvents:
-            if start:
+            if event.start:
                 diffStart = event.start - now
                 diffEnd = event.end - now
                 firstLed = int(abs(round(diffStart.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
