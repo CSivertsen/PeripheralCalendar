@@ -136,9 +136,9 @@ def showLeds(allEvents, now):
         strip.setPixelColor(i, Color(10, 10, 10))
 
         for event in allEvents:
-            if event.start:
-                diffStart = event.start - now
-                diffEnd = event.end - now
+            if event.startTime:
+                diffStart = event.startTime - now
+                diffEnd = event.endTime - now
                 firstLed = int(abs(round(diffStart.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
                 lastLed = int(abs(round(diffEnd.seconds*LED_COUNT/(horizonDelta*60)) - LED_COUNT))
                 #print(firstLed, lastLed)
@@ -178,30 +178,30 @@ def showScreen(allEvents, nowUnadjusted):
     eventTimes = []
     firstEvent = None
     for event in allEvents:
-        if not event.start.time():
+        if not event.startTime.time():
             break
 
         #Assembles all events into a list
         else:
-            eventTimes.append((event.start, event.end))
+            eventTimes.append((event.startTime, event.endTime))
 
         #Find the event in the list with the earliest start time
         if eventStartString:
             if not firstEvent:
                 firstEvent = event
-            elif eventStart < firstEvent.start:
+            elif eventStart < firstEvent.startTime:
                 firstEvent = event
 
     if firstEvent:
 
         if firstEvent.start < now:
             draw.text((x, top + ((0)*15)), firstEvent.summary, font=font, fill=255)
-            draw.text((x, top + ((1)*15)), 'Now: ' + firstEvent.start.time() + ' - ' + firstEvent.end.time() , font=font, fill=255)
+            draw.text((x, top + ((1)*15)), 'Now: ' + firstEvent.startTime.time() + ' - ' + firstEvent.endTime.time() , font=font, fill=255)
             if firstEvent.location:
                 draw.text((x, top + ((2)*15)), firstEvent.location + ' ', font=font, fill=255)
         else:
             draw.text((x, top + ((0)*15)), firstEvent.summary, font=font, fill=255)
-            draw.text((x, top + ((1)*15)), firstEvent.start.time() + ' - ' + firstEvent.end.time(), font=font, fill=255)
+            draw.text((x, top + ((1)*15)), firstEvent.startTime.time() + ' - ' + firstEvent.endTime.time(), font=font, fill=255)
             if firstEvent.location:
                 draw.text((x, top + ((2)*15)), firstEvent.location + ' ', font=font, fill=255)
     else:
