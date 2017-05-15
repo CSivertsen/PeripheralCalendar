@@ -173,7 +173,7 @@ def checkButton(allEvents, nowUnadjusted):
         buttonWasOn = False
 
 
-def showScreen(allEvents, nowUnadjusted):
+def showScreen(allEvents, now):
     eventTimes = []
     firstEvent = None
     for event in allEvents:
@@ -185,22 +185,22 @@ def showScreen(allEvents, nowUnadjusted):
             eventTimes.append((event.startTime, event.endTime))
 
         #Find the event in the list with the earliest start time
-        if eventStartString:
+        if event.startTime:
             if not firstEvent:
                 firstEvent = event
-            elif eventStart < firstEvent.startTime:
+            elif event.startTime < firstEvent.startTime:
                 firstEvent = event
 
     if firstEvent:
 
         if firstEvent.start < now:
             draw.text((x, top + ((0)*15)), firstEvent.summary, font=font, fill=255)
-            draw.text((x, top + ((1)*15)), 'Now: ' + firstEvent.startTime.time() + ' - ' + firstEvent.endTime.time() , font=font, fill=255)
+            draw.text((x, top + ((1)*15)), 'Now: ' + firstEvent.startTime.strftime('%H:%M') + ' - ' + firstEvent.endTime.strftime('%H:%M') , font=font, fill=255)
             if firstEvent.location:
                 draw.text((x, top + ((2)*15)), firstEvent.location + ' ', font=font, fill=255)
         else:
             draw.text((x, top + ((0)*15)), firstEvent.summary, font=font, fill=255)
-            draw.text((x, top + ((1)*15)), firstEvent.startTime.time() + ' - ' + firstEvent.endTime.time(), font=font, fill=255)
+            draw.text((x, top + ((1)*15)), firstEvent.startTime.strftime('%H:%M') + ' - ' + firstEvent.endTime.strftime('%H:%M'), font=font, fill=255)
             if firstEvent.location:
                 draw.text((x, top + ((2)*15)), firstEvent.location + ' ', font=font, fill=255)
     else:
