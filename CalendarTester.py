@@ -152,7 +152,7 @@ def showLeds(allEvents, now):
 
                     #Other events
                     else:
-                        strip.setPixelColor(i, Color(colorRGB[1], colorRGB[0], colorRGB[2]))
+                        strip.setPixelColor(i, Color(event.color[1], event.color[0], event.color[2]))
     strip.show()
 
 def checkButton(allEvents, nowUnadjusted):
