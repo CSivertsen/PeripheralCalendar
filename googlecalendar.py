@@ -43,7 +43,6 @@ class CalendarService:
                 orderBy='startTime').execute()
             allEvents[calendarId]= eventsResult.get('items', [])
 
-
         if not allEvents:
             print('You have no events in the next 3 hours')
         for calendarId in allEvents.keys():
@@ -56,7 +55,7 @@ class CalendarService:
                     event.get('location'),
                     self.getEventColor(event.get('colorId'), calendarId),
                     calendarId
-                    ))
+                    ))  
 
                 #start = event['start'].get('dateTime', event['start'].get('date'))
                 #print(start, event['summary'], self.getEventColor(event.get('colorId'),calendarId))

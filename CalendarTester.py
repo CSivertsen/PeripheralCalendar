@@ -94,8 +94,6 @@ def main():
 
     try:
         while True:
-            #now = datetime.datetime.now() + datetime.timedelta(hours=2)
-            # Only check this every 5 minutes
             nowUnadjusted = local_tz.localize(datetime.datetime.now())
 
             if datetime.timedelta(minutes=1) < nowUnadjusted - lastGoogleCall:
@@ -111,7 +109,6 @@ def main():
             #pixelFader.update()
             showLeds(allEvents, nowUnadjusted)
             checkButton(allEvents, nowUnadjusted)
-            # if screen is timed out, call clearScreen
 
     except KeyboardInterrupt:
         for i in range(LED_COUNT):
@@ -149,7 +146,7 @@ def showLeds(allEvents, now):
                 for i in range(lastLed, firstLed):
                     #If an event is ongoing
                     if diffStart < datetime.timedelta(minutes=5):
-                        fadedColor = pixelFader.fade(colorRGB)
+                        fadedColor = pixelFader.fade(event.color)
                         #print(fadedColor)
                         strip.setPixelColor(i, Color(fadedColor[1], fadedColor[0], fadedColor[2]))
 
