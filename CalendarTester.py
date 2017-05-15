@@ -193,7 +193,7 @@ def showScreen(allEvents, now):
 
     if firstEvent:
 
-        if firstEvent.start < now:
+        if firstEvent.startTime < now:
             draw.text((x, top + ((0)*15)), firstEvent.summary, font=font, fill=255)
             draw.text((x, top + ((1)*15)), 'Now: ' + firstEvent.startTime.strftime('%H:%M') + ' - ' + firstEvent.endTime.strftime('%H:%M') , font=font, fill=255)
             if firstEvent.location:
