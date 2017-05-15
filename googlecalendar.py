@@ -55,10 +55,9 @@ class CalendarService:
                     event.get('location'),
                     self.getEventColor(event.get('colorId'), calendarId),
                     calendarId
-                    ))  
+                    ))
 
-                #start = event['start'].get('dateTime', event['start'].get('date'))
-                #print(start, event['summary'], self.getEventColor(event.get('colorId'),calendarId))
+                print(event['start'].get('dateTime', event['start'].get('date')), event['summary'], self.getEventColor(event.get('colorId'),calendarId))
 
         return filteredEventObjects
 
