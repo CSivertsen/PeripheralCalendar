@@ -48,16 +48,19 @@ class CalendarService:
         for calendarId in allEvents.keys():
             for event in allEvents[calendarId]:
 
-                filteredEventObjects.append(CalendarEvent(
-                    event['start'].get('dateTime', event['start'].get('date')),
-                    event['end'].get('dateTime', event['end'].get('date')),
-                    event.get('summary'),
-                    event.get('location'),
-                    self.getEventColor(event.get('colorId'), calendarId),
-                    calendarId
-                    ))
+                timestampStart = dateutil.parser.parse(event['start'].get('dateTime', event['start'].get('date')))
 
-                print(event['start'].get('dateTime', event['start'].get('date')), event['summary'], self.getEventColor(event.get('colorId'),calendarId))
+                if timestampStart.time():
+                    filteredEventObjects.append(CalendarEvent(
+                        timestampStart,
+                        event['end'].get('dateTime', event['end'].get('date')),
+                        event.get('summary'),
+                        event.get('location'),
+                        self.getEventColor(event.get('colorId'), calendarId),
+                        calendarId
+                        ))
+
+                print(event['start'].get('dateTime', event['start'].get('date')), event['summary'])
 
         return filteredEventObjects
 
@@ -139,7 +142,7 @@ class CalendarEvent:
     calendarId = None
 
     def __init__(self, start, end, summary, location, color, calendarId):
-        self.startTime = dateutil.parser.parse(start)
+        self.startTime = start
         self.endTime = dateutil.parser.parse(end)
         self.summary = summary
         self.location = location
